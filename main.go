@@ -1,25 +1,31 @@
 package main
 
 import (
-    "flag"
-    "fmt"
-    "golang.org/x/crypto/bcrypt"
+	"fmt"
+	"bufio"
+	"os"
+	"strings"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
-    passwordPtr := flag.String("password", "", "Password to hash")
-    costPtr := flag.Int("cost", 10, "BCrypt Cost")
-    
-    flag.Parse()
-    
-    // fmt.Println(*passwordPtr)
-    // fmt.Println(*costPtr)
+	fmt.Println("Starting...")
 
-    password := []byte(*passwordPtr)
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter password: ")
+	password, _ := reader.ReadString('\n')
+	password = strings.Trim(password, " \n")
 
-    hashedPassword, err := bcrypt.GenerateFromPassword(password, *costPtr)
-    if err != nil {
-        panic(err)
-    }
-    fmt.Println(string(hashedPassword))
+	salt, _ := salt(18)
+	hash := makeArgon(password, salt)
+	key := formatKey(hash, salt)
+
+	fmt.Println("=======================\n\nARGON")
+	fmt.Println(key)
+	fmt.Println("\n=======================\n")
+
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 11)
+
+	fmt.Println("BCRYPT")
+	fmt.Println(string(hashedPassword))
 }
